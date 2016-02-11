@@ -2,7 +2,7 @@
 
 from random import uniform
 
-from HW5.classes import InvertedPendulum
+from HW5.classes.invertedpendulum import InvertedPendulum
 
 
 class Individual (object):

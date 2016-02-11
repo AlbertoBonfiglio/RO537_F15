@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from HW5.classes import InvertedPendulum
+from HW5.classes.invertedpendulum import InvertedPendulum
 
 class Controller (object):
 
