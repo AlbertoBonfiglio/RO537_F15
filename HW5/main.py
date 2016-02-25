@@ -14,25 +14,11 @@ from HW5.classes.population import Population
 
 
 def main():
-    #neuralNet = NeuralNetwork()
-
     pendulum = InvertedPendulum()
-    for n in np.arange(-1, 20, 3):
+    for n in np.arange(-200, 200, 10):
         cart, theta, forces = pendulum.applyforcea(u=n, tmax=2.5, timeslice=0.001)
         x, y = transform(theta)
         showGraph(x, y, cart, 0.001, "Relative motion of cart and pendulum u={0}".format(n))
-
-
-def nnmain():
-    contr = Controller()
-    contr.start()
-
-    while contr.isRunning():
-        pass
-
-    genome = [0,0,0,0,0,0]
-    pop = Population(genome, 100)
-    fit = pop.individuals[3].fitness()
 
 
 def transform(theta):
@@ -94,6 +80,16 @@ def showGraph(x, y, cart, timeslice=0.01, caption=""):
     plt.show()
 
 
+def nnmain():
+    contr = Controller()
+    contr.start()
+
+    while contr.isRunning():
+        pass
+
+    genome = [0,0,0,0,0,0]
+    pop = Population(genome, 100)
+    fit = pop.individuals[3].fitness()
 
 
 
