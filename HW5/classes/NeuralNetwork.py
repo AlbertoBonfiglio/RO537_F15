@@ -86,7 +86,7 @@ class NEvoNetwork (object):
         #now iterates through the rest of the layers
         for n in range(1, len(self.layers)):
             output = self.layers[n].get_outputs(output)
-
+            print('layer output {0}'.format(output))
         return output
 
 

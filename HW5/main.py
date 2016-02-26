@@ -10,7 +10,7 @@ import numpy as np
 
 from HW5.classes.controller import Controller
 from HW5.classes.invertedpendulum import InvertedPendulum
-from HW5.classes.population import Population
+from HW5.classes.GeneticAlgorithm import Population
 from HW5.classes.NeuralNetwork import NEvoNetwork, NeuronLayer, Neuron
 
 def main():
@@ -95,8 +95,8 @@ def nnmain():
 def NNTest():
     try:
 
-        x = NEvoNetwork(inputs=3, outputs=1, hiddenlayers=1,  hiddenneurons=3, inputweights=3)
-        y = x.get_outputs([2, 4, 2])
+        x = NEvoNetwork(inputs=5, outputs=2, hiddenlayers=3,  hiddenneurons=5, inputweights=5)
+        y = x.get_outputs([2, 4, 2, 8, 2.56])
         print(y)
     except Exception as ex:
         print(ex)
