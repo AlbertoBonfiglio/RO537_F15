@@ -7,11 +7,11 @@ from math import sin, cos
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 from HW5.classes.controller import Controller
 from HW5.classes.invertedpendulum import InvertedPendulum
-
 from HW5.classes.population import Population
-
+from HW5.classes.NeuralNetwork import NEvoNetwork, NeuronLayer, Neuron
 
 def main():
     pendulum = InvertedPendulum()
@@ -92,10 +92,20 @@ def nnmain():
     fit = pop.individuals[3].fitness()
 
 
+def NNTest():
+    try:
+
+        x = NEvoNetwork(inputs=3, outputs=1, hiddenlayers=1,  hiddenneurons=3, inputweights=3)
+        y = x.get_outputs([2, 4, 2])
+        print(y)
+    except Exception as ex:
+        print(ex)
 
 
 
 if __name__ == '__main__':
+    NNTest()
+
     main()
 
     nnmain()

@@ -10,26 +10,28 @@
 import numpy
 import math
 
-def StepActivation(self, value, threshold):
+def StepActivation(value, threshold):
     if threshold < value: return 1
     return 0
 
 
-def SigmoidActivation(self, value, threshold):
+def SigmoidActivation(value, threshold):
     return 1 / (1 + math.exp((-value)/threshold))
+
+
 
 
 
 class Neuron(object):
     def __init__(self, weights=5, activation=SigmoidActivation):
-        self.weights = numpy.random.randn(weights + 1) # add bias
+        self.weights = numpy.random.randn(weights)
         self.activation = activation
 
 
     def output(self, inputs, activation=None):
         #First let's make sure things match
         if len(inputs) != (len(self.weights) -1):
-            raise Exception('Number of inputs-weights mismatch')
+            raise Exception('Number of inputs {0} to weights {1} mismatch'.format(inputs, self.weights-1))
 
         #in case we change the activation function
         if activation is not None:
@@ -42,7 +44,6 @@ class Neuron(object):
         _threshold = self.weights[-1] # the last weight used for the bias
 
         return self.activation(_total, _threshold)
-
 
 
 
@@ -65,20 +66,24 @@ class NeuronLayer(object):
 
 class NEvoNetwork (object):
 
-    def __init__(self, inputs=3, outputs=1, hiddenlayers=1,  hiddenneurons=3, inputweights=5, activation=SigmoidActivation ):
+    def __init__(self, inputs=3, outputs=1, hiddenlayers=1,  hiddenneurons=3, inputweights=3, activation=SigmoidActivation ):
         self.layers = []
-        self.layers.append(NeuronLayer(inputs, inputweights, activation()))
+        self.layers.append(NeuronLayer(inputs, inputweights+1, activation))
 
+        _layerweights = inputs
         for n in range(hiddenlayers):
             # creates hidden layers. each layer adds one weight
-            self.layers.append(NeuronLayer(hiddenneurons, inputweights + (1+n), activation))
+            self.layers.append(NeuronLayer(hiddenneurons, _layerweights + 1, activation))
+            _layerweights = hiddenneurons
 
-        self.layers.append(NeuronLayer(outputs, inputweights + (hiddenlayers+2), activation()))
+        self.layers.append(NeuronLayer(outputs, _layerweights +1, activation))
 
 
     def get_outputs(self, inputs):
+        #Layer 0 is the input layet
         output = self.layers[0].get_outputs(inputs)
 
+        #now iterates through the rest of the layers
         for n in range(1, len(self.layers)):
             output = self.layers[n].get_outputs(output)
 
