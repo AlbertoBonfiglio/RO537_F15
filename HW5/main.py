@@ -94,21 +94,40 @@ def nnmain():
 
 def NNTest():
     try:
-
-        x = NEvoNetwork(inputs=5, outputs=2, hiddenlayers=3,  hiddenneurons=5, inputweights=5)
-        y = x.get_outputs([2, 4, 2, 8, 2.56])
+        x = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=15, inputweights=6)
+        y = x.get_outputs([2, 4, 2, 8, 2.56, 3])
         print(y)
     except Exception as ex:
         print(ex)
 
 
+def gaTest():
+    genome = np.zeros(6)
+
+    ga = Population(genome, size=100)
+
+    parents = [ga.individuals[4], ga.individuals[45]]
+
+    x1, x2 = ga.crossover(parents)
+
+    induhviduals = ga.evolve(125)
+    print('done')
+
 
 if __name__ == '__main__':
+    # in the simulation world it should not fall because the simulation is multi threaded
+
+    #start with the 0 values then pass the alues every 100ms to the NN
+    # the number of weights should be the same as the inputs in the network for all layers
+
     NNTest()
 
-    main()
+    gaTest()
 
-    nnmain()
+
+    #main()
+
+    #nnmain()
 
 
 

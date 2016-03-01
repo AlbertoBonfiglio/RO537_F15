@@ -32,7 +32,7 @@ class Forces(object):
 
 class InvertedPendulum (object):
 
-    def __init__(self, M=10, m=1, l=1):
+    def __init__(self, M=10, m=1, l=1,  verbose=False):
         self.M = M   # kg mass of cart
         self.m = m   # kg mass of pendulum
         self.l = l   # lenght of pendulum arm
@@ -43,6 +43,8 @@ class InvertedPendulum (object):
         self.theta = 0
         self.thetadot = 0
         self.theta2dot = 0
+
+        self.verbose = verbose
 
 #region private methods
     def __getLinearAccelleration(self, u=1, theta=0, thetadot=0, theta2dot=0):
@@ -215,8 +217,9 @@ class InvertedPendulum (object):
                 _thetadot += (_theta2dot * timeslice)
                 _theta = _theta + (_thetadot * timeslice)
 
-                print('Position -> {0}'.format(_x))
-                print('Theta -> {0} - {1}'.format(theta, degrees(_theta)))
+                if self.verbose == True:
+                    print('Position -> {0}'.format(_x))
+                    print('Theta -> {0} - {1}'.format(theta, degrees(_theta)))
 
                 #limits to 180 degrees excursion
                 if _theta <= -(pi/2) or _theta >= (3*pi/2):
