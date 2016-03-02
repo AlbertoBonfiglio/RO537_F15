@@ -9,15 +9,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from HW5.classes.controller import Controller
-from HW5.classes.invertedpendulum import InvertedPendulum
+from HW5.classes.invertedpendulum import InvertedPendulum, State
 from HW5.classes.GeneticAlgorithm import Population
 from HW5.classes.NeuralNetwork import NEvoNetwork, NeuronLayer, Neuron
 
-def main():
+
+
+def pendulumTest():
     pendulum = InvertedPendulum()
     for n in np.arange(-200, 200, 10):
-        cart, theta, forces = pendulum.applyforcea(u=n, tmax=2.5, timeslice=0.001)
+        states, time = pendulum.time_to_ground(u=n, tmax=2.5, timeslice=0.001)
+
+        theta = (state.theta for state in states)
+        cart =  (state.x for state in states)
         x, y = transform(theta)
+
         showGraph(x, y, cart, 0.001, "Relative motion of cart and pendulum u={0}".format(n))
 
 
@@ -25,12 +31,12 @@ def transform(theta):
     r = 1
     x = []
     y = []
-    for n in range(int(len(theta))):
+    for n in theta:
         # since we placed theta=0 up vertically we need to shift
         # the axis 90 degrees counterclockwise (-pi/2)
         # so x becomes sin(t) and y cos(t)
-        y.append(r*cos(theta[n]))
-        x.append(r*sin(theta[n]))
+        y.append(r*cos(n))
+        x.append(r*sin(n))
 
     return x, y
 
@@ -120,12 +126,12 @@ if __name__ == '__main__':
     #start with the 0 values then pass the alues every 100ms to the NN
     # the number of weights should be the same as the inputs in the network for all layers
 
-    NNTest()
+    #NNTest()
 
-    gaTest()
+    #gaTest()
 
 
-    #main()
+    pendulumTest()
 
     #nnmain()
 

@@ -36,7 +36,7 @@ class Individual (object):
     # plus or minus the threshold
     #returns milliseconds
     def time_to_threshold(self):
-        #TODO perform calulatoin
+        #TODO perform calulation
         return 0
 
 
