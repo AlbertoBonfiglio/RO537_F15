@@ -104,7 +104,7 @@ class InvertedPendulum (object):
     def apply_force(self, u=1, initialstate=None, threshold=(-(pi/2), (3*pi/2)), tmax=10, timeslice=0.001):
         try:
             stateArray = []
-
+            impulse  = u
             if initialstate is None: initialstate = State()
 
             x = initialstate.x
@@ -118,8 +118,10 @@ class InvertedPendulum (object):
                 x2dot = self.__getLinearAccelleration(u, theta, thetadot, theta2dot)
                 theta2dot = self.__getAngularAccelleration(x2dot, theta)
 
-                xdot = self.__getInstantaneousVelocity(xdot, x2dot, tmax)
-                thetadot = self.__getInstAngularVelocity(thetadot, theta2dot, tmax)
+                #xdot = self.__getInstantaneousVelocity(xdot, x2dot, tmax)
+                xdot = self.__getLinearVelocity(xdot, x2dot, timeslice)
+                thetadot = self.__getAngularVelocity(thetadot, theta2dot, timeslice)
+
 
                 x = x + (xdot * timeslice)
                 theta = theta + (thetadot * timeslice)
@@ -131,8 +133,10 @@ class InvertedPendulum (object):
 
                 #limits to 180 degrees excursion
                 if theta <= threshold[0] or theta >= threshold[1]:
+                    #print('Hit the ground!')
                     break
 
+            print('{2} Time to ground: {0} angle = {1} '.format(t, theta, impulse))
             return stateArray, t
 
         except Exception as ex:

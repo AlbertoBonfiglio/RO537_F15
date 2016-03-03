@@ -17,14 +17,14 @@ from HW5.classes.NeuralNetwork import NEvoNetwork, NeuronLayer, Neuron
 
 def pendulumTest():
     pendulum = InvertedPendulum()
-    for n in np.arange(-200, 200, 10):
-        states, time = pendulum.time_to_ground(u=n, tmax=2.5, timeslice=0.001)
+    for n in np.arange(-15, 15, 1):
+        states, time = pendulum.time_to_ground(u=n, tmax=100, timeslice=0.001)
 
         theta = (state.theta for state in states)
         cart =  (state.x for state in states)
         x, y = transform(theta)
 
-        showGraph(x, y, cart, 0.001, "Relative motion of cart and pendulum u={0}".format(n))
+       # showGraph(x, y, cart, 0.001, "Relative motion of cart and pendulum u={0}".format(n))
 
 
 def transform(theta):
@@ -66,8 +66,10 @@ def showGraph(x, y, cart, timeslice=0.01, caption=""):
     #ax.xlabel('seconds')
 
     x1 = []
-    for n in range(len(cart)):
-        x1.append(x[n] + cart[n])
+    i = 0
+    for n in cart:
+        x1.append(x[i] + n)
+        i += 1
 
     ax = axes[1]
     ax.set_title('Pendulum respect cart')
