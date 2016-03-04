@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from math import sin, cos, pi, degrees
+from math import sin, cos, pi, degrees, radians
 from scipy import arange
 
 g = 9.8 #gravity acceleration constant (m/s**2)
@@ -52,38 +52,7 @@ class InvertedPendulum (object):
         return Θ2dot
 
 
-    def __getLinearAccelleration2(self, u=1, theta=0, thetadot=0):
-        # Calculates the linear acceleration
-        a = u + \
-            (self.m * self.l * sin(theta) * thetadot**2) - \
-            (self.m * g * cos(theta) * sin(theta))
-        b = self.M + self.m - (self.m * cos(theta)**2)
 
-        x2dot = a/b
-        return x2dot
-
-
-    def __getAngularAccelleration2(self, u=1, theta=0, thetadot=0):
-        M = self.M + self.m
-        a = (u * cos(theta)) - (M * g * sin(theta)) + (self.m * self.l * (cos(theta) * sin(theta)) * thetadot)
-        b = (self.m * self.l * (cos(theta)**2)) - (M * self.l)
-
-        Θ2dot = a / b
-        return Θ2dot
-
-
-    def __getInstantaneousVelocity(self, xdot, x2dot, seconds):
-        try:
-            return xdot + (x2dot * seconds)
-        except ZeroDivisionError:
-            return xdot
-
-
-    def __getInstAngularVelocity(self, thetadot, theta2dot, seconds):
-        try:
-            return thetadot + (theta2dot * seconds)
-        except ZeroDivisionError:
-            return thetadot
 
 
     def __getLinearVelocity(self, xdot, x2dot, t):
@@ -101,8 +70,9 @@ class InvertedPendulum (object):
 
 
 
-    def apply_force(self, u=1, initialstate=None, threshold=(-(pi/2), (3*pi/2)), tmax=10, timeslice=0.001):
+    def apply_force(self, u=1, initialstate=None, threshold=(-(pi/2), (pi/2)), tmax=10, timeslice=0.001):
         try:
+
             stateArray = []
             impulse  = u
             if initialstate is None: initialstate = State()
@@ -114,7 +84,7 @@ class InvertedPendulum (object):
             thetadot = initialstate.thetadot
             theta2dot = initialstate.theta2dot
 
-            for t in arange(timeslice, tmax, timeslice):
+            for t in arange(0, tmax, timeslice):
                 x2dot = self.__getLinearAccelleration(u, theta, thetadot, theta2dot)
                 theta2dot = self.__getAngularAccelleration(x2dot, theta)
 
@@ -126,18 +96,24 @@ class InvertedPendulum (object):
                 x = x + (xdot * timeslice)
                 theta = theta + (thetadot * timeslice)
 
-                s = State(x, xdot, x2dot, theta, thetadot, theta2dot)
+                s = State(x, xdot, x2dot, degrees(theta), thetadot, theta2dot)
                 stateArray.append(s)
 
                 u = 0 # after first pass the force is 0 as it is an impulse
 
                 #limits to 180 degrees excursion
-                if theta <= threshold[0] or theta >= threshold[1]:
-                    #print('Hit the ground!')
-                    break
+                if impulse >=0:
+                    if theta < threshold[0]:
+                        break
+                elif impulse < 0:
+                    if theta > threshold[1]:
+                        break
 
-            print('{2} Time to ground: {0} angle = {1} '.format(t, theta, impulse))
-            return stateArray, t
+
+            #TODO figure out the timing
+
+            print('{2} Time to ground: {0:.5f} angle = {1:.3f} or {3:.3f}'.format(t, theta, impulse, degrees(theta)))
+            return stateArray, timeslice * t
 
         except Exception as ex:
             print(ex)
@@ -152,7 +128,7 @@ class InvertedPendulum (object):
 
 
 
-    def time_to_ground(self, u=1, initialstate=None, threshold=(-(pi/2), (3*pi/2)), tmax=10, timeslice=0.001):
+    def time_to_ground(self, u=1, initialstate=None, threshold=(-(pi/2), (pi/2)), tmax=10, timeslice=0.001):
         state, time = self.apply_force( u, initialstate, threshold, tmax, timeslice)
 
         return state, time

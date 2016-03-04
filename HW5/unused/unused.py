@@ -133,3 +133,39 @@ def applyforce2(self, u=1, x=0, xdot=0, x2dot=0, theta=0, thetadot=0, theta2dot=
 
         except Exception as ex:
             print(ex)
+
+
+
+
+  def __getLinearAccelleration2(self, u=1, theta=0, thetadot=0):
+        # Calculates the linear acceleration
+        a = u + \
+            (self.m * self.l * sin(theta) * thetadot**2) - \
+            (self.m * g * cos(theta) * sin(theta))
+        b = self.M + self.m - (self.m * cos(theta)**2)
+
+        x2dot = a/b
+        return x2dot
+
+
+    def __getAngularAccelleration2(self, u=1, theta=0, thetadot=0):
+        M = self.M + self.m
+        a = (u * cos(theta)) - (M * g * sin(theta)) + (self.m * self.l * (cos(theta) * sin(theta)) * thetadot)
+        b = (self.m * self.l * (cos(theta)**2)) - (M * self.l)
+
+        Θ2dot = a / b
+        return Θ2dot
+
+
+    def __getInstantaneousVelocity(self, xdot, x2dot, seconds):
+        try:
+            return xdot + (x2dot * seconds)
+        except ZeroDivisionError:
+            return xdot
+
+
+    def __getInstAngularVelocity(self, thetadot, theta2dot, seconds):
+        try:
+            return thetadot + (theta2dot * seconds)
+        except ZeroDivisionError:
+            return thetadot

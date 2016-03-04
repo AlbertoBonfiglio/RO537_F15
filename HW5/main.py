@@ -17,7 +17,7 @@ from HW5.classes.NeuralNetwork import NEvoNetwork, NeuronLayer, Neuron
 
 def pendulumTest():
     pendulum = InvertedPendulum()
-    for n in np.arange(-15, 15, 1):
+    for n in np.arange(-1500, 1500, 50):
         states, time = pendulum.time_to_ground(u=n, tmax=100, timeslice=0.001)
 
         theta = (state.theta for state in states)
@@ -89,6 +89,15 @@ def showGraph(x, y, cart, timeslice=0.01, caption=""):
 
 
 def nnmain():
+    #step 0: set up Neural network
+    #step 1: Start pendulum with random force
+    #step 2: at n milliseconds take state
+    #step 3: pass state to genetic algorithm
+    #step 4: GA runs n epochs and evaluates what gives the best output
+    #step 5: GA passes weights to NN to evaluate a force to apply to pendulum
+    #Step 6: NN applies force to pendulum
+    #Step 7: Goto step 2
+
     contr = Controller()
     contr.start()
 
@@ -102,7 +111,12 @@ def nnmain():
 
 def NNTest():
     try:
-        x = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=15, inputweights=6)
+        x = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=2,  hiddenneurons=15, inputweights=6)
+        w = x.get_weights()
+        w[1] = 666
+        x.set_weights2(w)
+        w1= x.get_weights()
+        print(w)
         y = x.get_outputs([2, 4, 2, 8, 2.56, 3])
         print(y)
     except Exception as ex:

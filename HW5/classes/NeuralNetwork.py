@@ -64,6 +64,10 @@ class NeuronLayer(object):
 
 
 
+
+
+
+
 class NEvoNetwork (object):
 
     def __init__(self, inputs=3, outputs=1, hiddenlayers=1,  hiddenneurons=3, inputweights=3, activation=SigmoidActivation ):
@@ -100,11 +104,18 @@ class NEvoNetwork (object):
         return retval
 
 
+    #def set_weights(self, weights):
+    #    n=0
+    #    for layer in self.layers:
+    #        for neuron in layer.neurons:
+    #            for weight in neuron.weights:
+    #                weight = weights[n]
+    #                n +=1
+
     def set_weights(self, weights):
         n=0
-        for layer in self.layers:
-            for neuron in layer.neurons:
-                for weight in neuron.weights:
-                    weight = weights[n]
+        for layer in range(len(self.layers)):
+            for neuron in range(len(self.layers[layer].neurons)):
+                for weight in range(len(self.layers[layer].neurons[neuron].weights)):
+                    self.layers[layer].neurons[neuron].weights[weight] = weights[n]
                     n +=1
-
