@@ -15,10 +15,16 @@ from HW5.classes.NeuralNetwork import NEvoNetwork, NeuronLayer, Neuron
 
 
 
-def pendulumTest():
+def pendulumTest(timeslice=0.001, tmax=100):
     pendulum = InvertedPendulum()
-    for n in np.arange(-1500, 1500, 50):
-        states, time = pendulum.time_to_ground(u=n, tmax=100, timeslice=0.001)
+    for n in np.arange(-200, 200, 100):
+        states, time = pendulum.time_to_ground(u=n, tmax=tmax, timeslice=timeslice)
+        n=0
+        for state in states:
+            force = pendulum.get_force(state)
+            print('Force : {}'.format(force))
+            n+=1
+            if n > 60: break
 
         theta = (state.theta for state in states)
         cart =  (state.x for state in states)
@@ -147,7 +153,11 @@ if __name__ == '__main__':
     #gaTest()
 
 
-    pendulumTest()
+    #pendulumTest(0.01)
+    #pendulumTest(0.001)
+    #pendulumTest(0.0001)
+
+    pendulumTest(0.001, 0.001*200)
 
     #nnmain()
 

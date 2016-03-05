@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 
 from random import uniform, randint
-from HW5.classes.invertedpendulum import InvertedPendulum
+from HW5.classes.invertedpendulum import InvertedPendulum, State
 
 
 class Individual (object):
 
-    def __init__(self, alleles, pendulum, threshold=0.1):
-        self.threshold = threshold
+    def __init__(self, alleles, pendulum, state):
         self.pendulum = pendulum
+        self.state = state
         #these are the actual weights we are evolving
         self.alleles = alleles
         self.fitness_score = 0
@@ -18,7 +18,6 @@ class Individual (object):
     #TODO find a way to return a specific fitness value from different
     #functions e.g. 0.0 to 1.0
     def calculate_fitness(self, func=None):
-
         if func == None:
             func = self.time_to_ground
         self.fitness_score = func()
@@ -28,7 +27,7 @@ class Individual (object):
     #returns milliseconds
     def time_to_ground(self):
         #TODO perform calulatoin
-        time = self.pendulum.applyforce2(u=10)
+        states, time = self.pendulum.applyforce2(u=10)
 
         return time
 
@@ -37,6 +36,8 @@ class Individual (object):
     #returns milliseconds
     def time_to_threshold(self):
         #TODO perform calulation
+        #Basically we count how much time the pendulum stays within the threshold
+
         return 0
 
 
@@ -131,7 +132,6 @@ class Population (object):
         child1 = Individual(alleles1, self.pendulum)
 
         return child0, child1
-
 
 
     def mutate(self, chromosome):
