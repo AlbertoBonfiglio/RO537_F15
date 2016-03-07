@@ -98,23 +98,23 @@ class InvertedPendulum (object):
                 x = x + (xdot * timeslice)
                 theta = theta + (thetadot * timeslice)
 
-                s = State(x, xdot, x2dot, degrees(theta), thetadot, theta2dot)
+                s = State(x, xdot, x2dot, theta, thetadot, theta2dot)
                 stateArray.append(s)
 
                 u = 0 # after first pass the force is 0 as it is an impulse
 
                 n += 1
                 #limits to 180 degrees excursion
-                if impulse >=0:
-                    if theta <= threshold[0]:
-                        break
-                elif impulse < 0:
-                    if theta >= threshold[1]:
-                        break
+                #if impulse >=0:
+                if theta <= threshold[0]:
+                    break
+                #elif impulse < 0:
+                if theta >= threshold[1]:
+                    break
 
             #TODO figure out the timing
 
-            print('{2} Time to ground: {0:.4f} seconds angle = {1:.2f}Rad or {3:.2f}Deg'.format(n*timeslice, theta, impulse, degrees(theta)))
+            #print('{2} Time to ground: {0:.4f} seconds angle = {1:.2f}Rad or {3:.2f}Deg'.format(n*timeslice, theta, impulse, degrees(theta)))
             return stateArray, timeslice * n
 
         except Exception as ex:
@@ -147,7 +147,11 @@ class InvertedPendulum (object):
 
         return state, time
 
-
+    def distance_from_zero(self, state):
+        # calculates the cartesian coordinates at the timestep
+        # Closer to the vertical is better
+        raise NotImplementedError
+        pass
 
 
 

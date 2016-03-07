@@ -94,7 +94,7 @@ def showGraph(x, y, cart, timeslice=0.01, caption=""):
     plt.show()
 
 
-def nnmain():
+def nnmain(timeslice=0.001, tmax=0.2):
     #step 0: set up Neural network
     #step 1: Start pendulum with random force
     #step 2: at n milliseconds take state
@@ -104,15 +104,18 @@ def nnmain():
     #Step 6: NN applies force to pendulum
     #Step 7: Goto step 2
 
-    contr = Controller()
-    contr.start()
+    pendulum = InvertedPendulum()
+    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=10, inputweights=6)
+    ga = Population(pendulum, NN)
 
-    while contr.isRunning():
-        pass
+    force = np.random.randint(-200, 200)
+    states, time = pendulum.time_to_ground(u=force, tmax=tmax, timeslice=timeslice)
+    end_state = states[-1]
 
-    genome = [0,0,0,0,0,0]
-    pop = Population(genome, 100)
-    fit = pop.individuals[3].fitness()
+    ga.create(end_state)
+
+    ga.evolve(epochs=50)
+
 
 
 def NNTest():
@@ -157,9 +160,9 @@ if __name__ == '__main__':
     #pendulumTest(0.001)
     #pendulumTest(0.0001)
 
-    pendulumTest(0.001, 0.001*200)
+    #pendulumTest(0.001, 0.001*200)
 
-    #nnmain()
+    nnmain()
 
 
 

@@ -16,8 +16,11 @@ def StepActivation(value, threshold):
 
 
 def SigmoidActivation(value, threshold):
-    return 1 / (1 + math.exp((-value)/threshold))
+    try:
 
+        return 1 / (1 + numpy.exp((-value)/threshold))
+    except Exception as ex:
+        print('Exception {0}, value = {0}, threshold = {1}'.format(ex, value, threshold))
 
 
 
@@ -37,9 +40,13 @@ class Neuron(object):
         if activation is not None:
             self.activation = activation
 
-        _total = 0
-        for n in range(len(inputs)):
-            _total += inputs[n] * self.weights[n]
+        try:
+            _total = 0
+            for n in range(len(inputs)):
+                _total += inputs[n] * self.weights[n]
+        except:
+            print('Error \n   {3} \n    {4} \nN is {0}, inputs:{1}, weights={2}'.format(n, len(inputs), len(self.weights), self.weights, inputs))
+
 
         _threshold = self.weights[-1] # the last weight used for the bias
 
@@ -54,6 +61,7 @@ class NeuronLayer(object):
         self.number_of_neurons = neurons
         self.weights_per_neuron = weights
         self.activation = activation
+
 
     def get_outputs(self, inputs):
         retval = []
@@ -86,11 +94,13 @@ class NEvoNetwork (object):
     def get_outputs(self, inputs):
         #Layer 0 is the input layet
         output = self.layers[0].get_outputs(inputs)
+        #print('0 layer output {0} \n      {1}'.format(output,inputs))
 
         #now iterates through the rest of the layers
         for n in range(1, len(self.layers)):
             output = self.layers[n].get_outputs(output)
-            print('layer output {0}'.format(output))
+            #print('layer {1} output {0}'.format(output, n))
+
         return output
 
 
@@ -113,9 +123,12 @@ class NEvoNetwork (object):
     #                n +=1
 
     def set_weights(self, weights):
-        n=0
-        for layer in range(len(self.layers)):
-            for neuron in range(len(self.layers[layer].neurons)):
-                for weight in range(len(self.layers[layer].neurons[neuron].weights)):
-                    self.layers[layer].neurons[neuron].weights[weight] = weights[n]
-                    n +=1
+        try:
+            n=0
+            for layer in range(len(self.layers)):
+                for neuron in range(len(self.layers[layer].neurons)):
+                    for weight in range(len(self.layers[layer].neurons[neuron].weights)):
+                        self.layers[layer].neurons[neuron].weights[weight] = weights[n]
+                        n +=1
+        except Exception as ex:
+            print('Error setting weights {0}, {1}'.format(ex, weights))
