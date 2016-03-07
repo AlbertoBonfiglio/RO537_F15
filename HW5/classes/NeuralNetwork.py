@@ -17,12 +17,19 @@ def StepActivation(value, threshold):
 
 def SigmoidActivation(value, threshold):
     try:
-
         return 1 / (1 + numpy.exp((-value)/threshold))
     except Exception as ex:
         print('Exception {0}, value = {0}, threshold = {1}'.format(ex, value, threshold))
 
+def TanhActivation(value, threshold):
+    return numpy.tanh((value/threshold))
 
+
+def SoftmaxActivation(value, threshold):
+    tempval= (value/threshold)
+    e = numpy.exp(tempval - numpy.amax(tempval))
+    retval = e / numpy.sum(e)
+    return retval
 
 
 class Neuron(object):
