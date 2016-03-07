@@ -50,7 +50,7 @@ class Individual (object):
 
         #Now we apply the force and see how it pefrorms to give a fitness
         self.fitness_score = func(self.pendulum, self.state, output)
-        #print("force = {0}, score = {1}".format(output, self.fitness_score))
+
 
 
 
@@ -90,7 +90,7 @@ class Population (object):
             induhviduals.append(induhvidual)
 
         self.individuals = induhviduals
-        print('Success')
+
         return induhviduals
 
 
@@ -98,7 +98,6 @@ class Population (object):
         if len(self.individuals) == 0: raise Exception("Population ont initialized")
 
         try:
-            print('Start evo')
             population = self.individuals
 
             for e in range(epochs):
@@ -127,9 +126,6 @@ class Population (object):
                     induhviduals.append(mutant2)
 
                 population = individuals + induhviduals
-                #print('epoch: {0} - fitness {1} - best {2}'.
-                #      format(e, self.getPopulationFitness(population), self.getFittestIndividual(population).fitness_score))
-
 
             self.individuals = population
             return population

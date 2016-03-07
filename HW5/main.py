@@ -7,6 +7,7 @@ from math import sin, cos
 
 import matplotlib.pyplot as plt
 import numpy as np
+import time as tm
 
 from HW5.classes.controller import Controller
 from HW5.classes.invertedpendulum import InvertedPendulum, State
@@ -105,24 +106,33 @@ def nnmain(timeslice=0.001, tmax=0.2):
     #Step 7: Goto step 2
 
     pendulum = InvertedPendulum()
-    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=6, inputweights=6, activation=TanhActivation)
+    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=8, inputweights=6, activation=TanhActivation)
     ga = Population(pendulum, NN)
 
-    force = np.random.randint(-200, -20)
+    force = np.random.randint(-100, -10)
     states, time = pendulum.time_to_ground(u=force, tmax=tmax, timeslice=timeslice)
     end_state = states[-1]
     theta_array = []
-    for n in range(0, 1000):
+    for n in range(0, 100):
         ga.create(end_state, size=100, fitness_func=time_in_threshold)
-        ga.evolve(epochs=100)
+        t0 = tm.time()
+        ga.evolve(epochs=75)
+        t1 = tm.time()
+        #print('evo in {0}'.format(t0-t1))
+
+        t0 = tm.time()
         induhvidual = ga.getFittestIndividual()
+
 
         NN.set_weights(induhvidual.alleles)
         force = NN.get_outputs([end_state.x, end_state.xdot, end_state.x2dot, end_state.theta, end_state.thetadot, end_state.theta2dot])[0] * 1000
+
         states, time = pendulum.time_to_ground(u=force, initialstate=end_state, tmax=0.2, timeslice=timeslice)
+        t1 = tm.time()
+        print('state in {0}'.format(t0-t1))
         end_state = states[-1]
         theta_array.append(end_state.theta)
-        print('Theta = {0}'.format(end_state.theta))
+        print('Force={1:3f} -Theta={0:4f} -Fitness={2:3f}'.format(end_state.theta, force, induhvidual.fitness_score))
 
 
 def NNTest():

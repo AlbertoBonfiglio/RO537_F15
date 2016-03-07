@@ -3,7 +3,7 @@
 from math import sin, cos, pi, degrees, radians
 from scipy import arange
 
-g = 9.8 #gravity acceleration constant (m/s**2)
+g = 9.81 #gravity acceleration constant (m/s**2)
 
 
 class State(object):
@@ -106,9 +106,6 @@ class InvertedPendulum (object):
                     if theta >= threshold[1]:
                         break
 
-            #TODO figure out the timing
-
-            #print('{2} Time to ground: {0:.4f} seconds angle = {1:.2f}Rad or {3:.2f}Deg'.format(n*timeslice, theta, impulse, degrees(theta)))
             return stateArray, timeslice * n
 
         except Exception as ex:
@@ -137,9 +134,6 @@ class InvertedPendulum (object):
             thetadot = initialstate.thetadot
             theta2dot = initialstate.theta2dot
 
-            #x2dot = self.__getLinearAccelleration(u, theta, thetadot, theta2dot)
-            #theta2dot = self.__getAngularAccelleration(x2dot, theta)
-
             n=0
             for t in arange(0, tmax, timeslice):
                 if theta >= -(pi/2) and theta <= (pi/2):
@@ -160,11 +154,14 @@ class InvertedPendulum (object):
                     #limits to n degrees excursion
                     if theta >= threshold[0] and theta <= threshold[1]:
                         n += 1
+
+                    #if it exceeds the boundaries stop iterating
+                    if n > 0 and (theta < threshold[0] or theta > threshold[1]):
+                        break
+
                 else:
                     break
-            #TODO figure out the timing
 
-            #print('{2} Time to ground: {0:.4f} seconds angle = {1:.2f}Rad or {3:.2f}Deg'.format(n*timeslice, theta, impulse, degrees(theta)))
             return stateArray, timeslice * n
 
         except Exception as ex:
@@ -193,7 +190,8 @@ class InvertedPendulum (object):
         state, time = self.apply_force2(u, initialstate, threshold, tmax, timeslice)
         return state, time
 
-    def distance_from_zero(self, state):
+
+    def distance_from_zero(self, u=1, initialstate=None, threshold=(-(pi/2), (pi/2)), tmax=10, timeslice=0.001):
         # calculates the cartesian coordinates at the timestep
         # Closer to the vertical is better
         raise NotImplementedError
