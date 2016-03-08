@@ -31,7 +31,7 @@ class Population (object):
         self.size = size
         self.genome = len(NN.get_weights())
         self.crossover_rate = 0.4
-        self.mutation_rate = 0.3
+        self.mutation_rate = 0.2
         self.weightmax = 1
         self.NN = NN
         self.individuals = []
@@ -52,7 +52,7 @@ class Population (object):
         return induhviduals
 
 
-    def evolve(self, epochs:50, fitness_treshold=0.2):
+    def evolve(self, epochs:50, fitness_treshold=0.1):
         if len(self.individuals) == 0: raise Exception("Population ont initialized")
 
         try:
