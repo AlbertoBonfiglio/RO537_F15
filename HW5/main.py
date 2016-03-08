@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from HW5.classes.NeuralNetwork import NEvoNetwork, TanhActivation
-from HW5.classes.invertedpendulum import InvertedPendulum
+from HW5.classes.invertedpendulum import InvertedPendulum, State
 from HW5.classes.GeneticAlgorithm import Population
 
 
@@ -133,7 +133,7 @@ def nnmain(timeslice=0.001, tmax=0.2):
         print('Force={1:3f} -Theta={0:4f} -Fitness={2:3f}'.format(end_state.theta, force, induhvidual.fitness_score))
 
 
-def nnmain2(timeslice=0.001, tmax=0.05):
+def nnmain2(timeslice=0.002, tmax=0.2):
     #step 0: set up Neural network
     #step 1: Start pendulum with random force
     #step 2: at n milliseconds take state
@@ -144,41 +144,42 @@ def nnmain2(timeslice=0.001, tmax=0.05):
     #Step 7: Goto step 2
 
     pendulum = InvertedPendulum()
-    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=8, inputweights=6, activation=TanhActivation)
-    ga = Population(NN=NN, size=100)
+    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=16, inputweights=6, activation=TanhActivation)
+    ga = Population(NN=NN, size=30)
 
-    force = -50 # np.random.randint(-100, -10)
+    force = np.random.randint(-1, 1)
     initial_state, time = pendulum.get_State(u=force, tmax=tmax, timeslice=timeslice)
     print('Force={1:3f} -Theta={0:4f}'.format(initial_state[-1].theta, force))
 
+
     master_array =[]
 
-    ga.create(size=60)
+    ga.create(size=30)
 
     threshold =((-pi/2), (pi/2))
-    for n in range(0, 100):
+    for epoch in range(0, 1000):
         for induhvidual in ga.individuals:
             NN.set_weights(induhvidual.alleles)
-            theta_array =[]
-            theta_array += initial_state
+            #theta_array =[]
+            #theta_array += initial_state
             state = []
-            state += initial_state
+            state.append(initial_state[-1])
 
             airborne = True
             while airborne:
-                force = NN.get_outputs([state[-1].x, state[-1].xdot, state[-1].x2dot, state[-1].theta, state[-1].thetadot, state[-1].theta2dot])[0] * 100
+                force = NN.get_outputs([state[-1].x, state[-1].xdot, state[-1].x2dot, state[-1].theta, state[-1].thetadot, state[-1].theta2dot])[0] #* 5
                 state, time = pendulum.get_State(u=force, initialstate=state[-1], tmax=tmax, timeslice=timeslice)
 
-                theta_array += state
+                #theta_array += state
                 #print('Force = {0}, Theta = {1}'.format(force, state.theta))
                 if state[-1].theta < threshold[0] or state[-1].theta > threshold[1]:
                     airborne = False
                 else:
                     induhvidual.set_fitness(1)
 
-            master_array.append(state)
+            #master_array.append(state)
 
-        print('Best fitness score = {0}'.format(ga.getFittestIndividual().get_fitness(), n))
+        print('Epoch {1} --> Best fitness score = {0}'.format(ga.getFittestIndividual().get_fitness(), epoch))
         ga.evolve(epochs=1)
 
 

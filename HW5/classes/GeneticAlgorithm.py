@@ -30,8 +30,8 @@ class Population (object):
         if NN is None: raise Exception('NN not initialized')
         self.size = size
         self.genome = len(NN.get_weights())
-        self.crossover_rate = 0.4
-        self.mutation_rate = 0.3
+        self.crossover_rate = 0.7
+        self.mutation_rate = 0.1
         self.weightmax = 1
         self.NN = NN
         self.individuals = []
@@ -52,7 +52,7 @@ class Population (object):
         return induhviduals
 
 
-    def evolve(self, epochs:50, fitness_treshold=0.2):
+    def evolve(self, epochs:50, fitness_treshold=0.3):
         if len(self.individuals) == 0: raise Exception("Population ont initialized")
 
         try:
@@ -68,14 +68,14 @@ class Population (object):
                     parent2 = self.select(individuals, parent1)
 
                     #crossover
-                    #child1, child2 = self.crossover([parent1, parent2])
+                    child1, child2 = self.crossover([parent1, parent2])
 
                     #non crossover
                     #child1 = copy.deepcopy(parent1)
                     #child2 = copy.deepcopy(parent2)
 
-                    mutant1 = self.mutate(parent1)
-                    mutant2 = self.mutate(parent2)
+                    mutant1 = self.mutate(child1)
+                    mutant2 = self.mutate(child2)
 
                     #self.isDifferent(mutant1, parent1)
                     #self.isDifferent(mutant2, parent2)
@@ -114,11 +114,26 @@ class Population (object):
             print('Select', ex)
 
 
+    def select2(self, chromosomes, excluded=None):
+        try:
+            localcopy = copy.copy(chromosomes)
+            if excluded is not None:
+                localcopy.remove(excluded)
+
+            #in case can't decide
+            return choice(localcopy)
+
+        except Exception as ex:
+            print('Select', ex)
+
+
+
+
     def crossover(self, parents, pivot=None):
         try:
             if uniform(0, 1) > self.crossover_rate:
-                child0 = Individual(parents[0].alleles, self.pendulum, state=parents[0].state, NN=self.NN)
-                child1 = Individual(parents[1].alleles, self.pendulum, state=parents[0].state, NN=self.NN)
+                child0 = Individual(parents[0].alleles)
+                child1 = Individual(parents[1].alleles)
 
                 return child0, child1
 
@@ -128,8 +143,8 @@ class Population (object):
             alleles0 = parents[0].alleles[0:pivot] + parents[1].alleles[pivot:]
             alleles1 = parents[0].alleles[pivot:] + parents[1].alleles[0:pivot]
 
-            child0 = Individual(alleles0, self.pendulum, state=parents[0].state, NN=self.NN)
-            child1 = Individual(alleles1, self.pendulum, state=parents[0].state, NN=self.NN)
+            child0 = Individual(alleles0)
+            child1 = Individual(alleles1)
 
             return child0, child1
         except Exception as ex:
