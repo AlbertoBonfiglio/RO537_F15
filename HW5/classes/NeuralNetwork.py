@@ -80,9 +80,6 @@ class NeuronLayer(object):
 
 
 
-
-
-
 class NEvoNetwork (object):
 
     def __init__(self, inputs=3, outputs=1, hiddenlayers=1,  hiddenneurons=3, inputweights=3, activation=SigmoidActivation ):

@@ -112,14 +112,6 @@ class InvertedPendulum (object):
             print(ex)
 
 
-
-
-
-
-
-#endregion
-
-
     def apply_force2(self, u=1, initialstate=None, threshold=(-(pi/2), (pi/2)), tmax=5, timeslice=0.001):
         try:
             stateArray = []
@@ -157,12 +149,45 @@ class InvertedPendulum (object):
 
                     #if it exceeds the boundaries stop iterating
                     if n > 0 and (theta < threshold[0] or theta > threshold[1]):
+                        #print('threshold exceeded {0}'.format(theta))
                         break
 
                 else:
                     break
 
             return stateArray, timeslice * n
+
+        except Exception as ex:
+            print(ex)
+
+
+    def apply_force3(self, u=1, initialstate=None, tmax=0.2, timeslice=0.001):
+        try:
+            if initialstate is None: initialstate = State()
+
+            x = initialstate.x
+            xdot = initialstate.xdot
+            x2dot = initialstate.x2dot
+            theta = initialstate.theta
+            thetadot = initialstate.thetadot
+            theta2dot = initialstate.theta2dot
+
+            n=0
+            for t in arange(0, tmax, timeslice):
+                if theta >= -(pi/2) and theta <= (pi/2):
+                    x2dot = self.__getLinearAccelleration(u, theta, thetadot, theta2dot)
+                    theta2dot = self.__getAngularAccelleration(x2dot, theta)
+
+                    xdot = self.__getLinearVelocity(xdot, x2dot, timeslice)
+                    thetadot = self.__getAngularVelocity(thetadot, theta2dot, timeslice)
+
+                    x = x + (xdot * timeslice)
+                    theta = theta + (thetadot * timeslice)
+
+                else:
+                    break
+
+            return theta
 
         except Exception as ex:
             print(ex)
@@ -191,14 +216,58 @@ class InvertedPendulum (object):
         return state, time
 
 
-    def distance_from_zero(self, u=1, initialstate=None, threshold=(-(pi/2), (pi/2)), tmax=10, timeslice=0.001):
-        # calculates the cartesian coordinates at the timestep
-        # Closer to the vertical is better
-        raise NotImplementedError
-        pass
+    def smallest_angle(self, u=1, initialstate=None,  tmax=0.2, timeslice=0.001):
+        theta = self.apply_force(u, initialstate, tmax, timeslice)
+        return theta
 
 
 
 
+    def get_State(self, u=1, initialstate=None, threshold=(-(pi/2), (pi/2)), tmax=10, timeslice=0.001):
+        try:
+            stateArray = []
+            impulse  = u
+
+            if initialstate is None: initialstate = State()
+
+            x = initialstate.x
+            xdot = initialstate.xdot
+            x2dot = initialstate.x2dot
+            theta = initialstate.theta
+            thetadot = initialstate.thetadot
+            theta2dot = initialstate.theta2dot
+
+            #x2dot = self.__getLinearAccelleration(u, theta, thetadot, theta2dot)
+            #theta2dot = self.__getAngularAccelleration(x2dot, theta)
+
+            n=0
+            for t in arange(0, tmax, timeslice):
+                x2dot = self.__getLinearAccelleration(u, theta, thetadot, theta2dot)
+                theta2dot = self.__getAngularAccelleration(x2dot, theta)
+
+                xdot = self.__getLinearVelocity(xdot, x2dot, timeslice)
+                thetadot = self.__getAngularVelocity(thetadot, theta2dot, timeslice)
+
+                x = x + (xdot * timeslice)
+                theta = theta + (thetadot * timeslice)
+
+                s = State(x, xdot, x2dot, theta, thetadot, theta2dot)
+                stateArray.append(s)
+
+                #u = 0 # after first pass the force is 0 as it is an impulse
+
+                n += 1
+                #limits to n degrees excursion
+                if impulse >=0:
+                    if theta <= threshold[0]:
+                        break
+                elif impulse < 0:
+                    if theta >= threshold[1]:
+                        break
+
+            return stateArray, n
+
+        except Exception as ex:
+            print(ex)
 
 

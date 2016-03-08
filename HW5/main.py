@@ -1,18 +1,15 @@
 #!/usr/bin/python3
 
 
-from fractions import Fraction
-from math import sin, cos
-
+import time as tm
+from math import sin, cos, pi
 
 import matplotlib.pyplot as plt
 import numpy as np
-import time as tm
 
-from HW5.classes.controller import Controller
-from HW5.classes.invertedpendulum import InvertedPendulum, State
-from HW5.classes.GeneticAlgorithm import Population, Individual, time_to_ground, time_in_threshold
-from HW5.classes.NeuralNetwork import NEvoNetwork, NeuronLayer, Neuron, TanhActivation
+from HW5.classes.NeuralNetwork import NEvoNetwork, TanhActivation
+from HW5.classes.invertedpendulum import InvertedPendulum
+from HW5.classes.GeneticAlgorithm import Population
 
 
 
@@ -109,30 +106,82 @@ def nnmain(timeslice=0.001, tmax=0.2):
     NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=8, inputweights=6, activation=TanhActivation)
     ga = Population(pendulum, NN)
 
-    force = np.random.randint(-100, -10)
+    force = -50 # np.random.randint(-100, -10)
     states, time = pendulum.time_to_ground(u=force, tmax=tmax, timeslice=timeslice)
     end_state = states[-1]
+    print('Force={1:3f} -Theta={0:4f}'.format(end_state.theta, force))
+
     theta_array = []
     for n in range(0, 100):
         ga.create(end_state, size=100, fitness_func=time_in_threshold)
+        ga.create(end_state, size=100, fitness_func=angle_from_zero)
+
         t0 = tm.time()
         ga.evolve(epochs=75)
         t1 = tm.time()
-        #print('evo in {0}'.format(t0-t1))
+        print('Evolutionj in {0}'.format(t0-t1))
 
         t0 = tm.time()
         induhvidual = ga.getFittestIndividual()
-
-
         NN.set_weights(induhvidual.alleles)
         force = NN.get_outputs([end_state.x, end_state.xdot, end_state.x2dot, end_state.theta, end_state.thetadot, end_state.theta2dot])[0] * 1000
-
         states, time = pendulum.time_to_ground(u=force, initialstate=end_state, tmax=0.2, timeslice=timeslice)
         t1 = tm.time()
         print('state in {0}'.format(t0-t1))
         end_state = states[-1]
         theta_array.append(end_state.theta)
         print('Force={1:3f} -Theta={0:4f} -Fitness={2:3f}'.format(end_state.theta, force, induhvidual.fitness_score))
+
+
+def nnmain2(timeslice=0.001, tmax=0.05):
+    #step 0: set up Neural network
+    #step 1: Start pendulum with random force
+    #step 2: at n milliseconds take state
+    #step 3: pass state to genetic algorithm
+    #step 4: GA runs n epochs and evaluates what gives the best output
+    #step 5: GA passes weights to NN to evaluate a force to apply to pendulum
+    #Step 6: NN applies force to pendulum
+    #Step 7: Goto step 2
+
+    pendulum = InvertedPendulum()
+    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=8, inputweights=6, activation=TanhActivation)
+    ga = Population(NN=NN, size=100)
+
+    force = -50 # np.random.randint(-100, -10)
+    initial_state, time = pendulum.get_State(u=force, tmax=tmax, timeslice=timeslice)
+    print('Force={1:3f} -Theta={0:4f}'.format(initial_state[-1].theta, force))
+
+    master_array =[]
+
+    ga.create(size=60)
+
+    threshold =((-pi/2), (pi/2))
+    for n in range(0, 100):
+        for induhvidual in ga.individuals:
+            NN.set_weights(induhvidual.alleles)
+            theta_array =[]
+            theta_array += initial_state
+            state = []
+            state += initial_state
+
+            airborne = True
+            while airborne:
+                force = NN.get_outputs([state[-1].x, state[-1].xdot, state[-1].x2dot, state[-1].theta, state[-1].thetadot, state[-1].theta2dot])[0] * 100
+                state, time = pendulum.get_State(u=force, initialstate=state[-1], tmax=tmax, timeslice=timeslice)
+
+                theta_array += state
+                #print('Force = {0}, Theta = {1}'.format(force, state.theta))
+                if state[-1].theta < threshold[0] or state[-1].theta > threshold[1]:
+                    airborne = False
+                else:
+                    induhvidual.set_fitness(1)
+
+            master_array.append(state)
+
+        print('Best fitness score = {0}'.format(ga.getFittestIndividual().get_fitness(), n))
+        ga.evolve(epochs=1)
+
+
 
 
 def NNTest():
@@ -179,7 +228,8 @@ if __name__ == '__main__':
 
     #pendulumTest(0.001, 0.001*200)
 
-    nnmain()
+    #nnmain()
+    nnmain2()
 
 
 

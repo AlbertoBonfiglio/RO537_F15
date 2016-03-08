@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from random import uniform, randint, shuffle, choice
+from random import uniform, randint, shuffle
 from math import radians, pi
 import copy
 import time
@@ -10,41 +10,94 @@ import numpy
 from HW5.classes.invertedpendulum import InvertedPendulum, State
 from HW5.classes.NeuralNetwork import NEvoNetwork
 
+def time_to_ground(pendulum, state=None, force=0):
+    #in this instance we calculate fitness based on how long the pendulum stays up
+    #returns milliseconds
+    states, time = pendulum.time_to_ground(u=force, initialstate=state)
+    return time
+
+
+def time_in_threshold(pendulum, state=None, force=0):
+    #in this instance we calculate fitness based on how long the pendulum stays within
+    # plus or minus the threshold
+    #Basically we count how much time the pendulum stays within the threshold
+    t1 = radians(-20),
+    t2 = radians(20),
+    states, time = pendulum.time_in_threshold(u=force, initialstate=state, threshold=(t1,t2))
+    return time
+
+
+def angle_from_zero(pendulum, state=None, force=0):
+    #in this instance we calculate fitness based on the angle at Tmax
+    # the smaller the better
+    #Basically we count how much time the pendulum stays within the threshold
+    theta = pendulum.smallest_angle(u=force, initialstate=state, tmax=0.2 )
+    retval = (pi/2 - theta)
+    return retval
+
+
+
 class Individual (object):
 
-    def __init__(self, alleles):
+    def __init__(self, alleles, pendulum, state, NN):
+        self.pendulum = pendulum
+        self.state = state
         #these are the actual weights we are evolving
         self.alleles = alleles
         self.fitness_score = 0
+        self.inputs = [self.state.x, self.state.xdot, self.state.x2dot, self.state.theta, self.state.thetadot, self.state.theta2dot]
+        self.NN = NN
 
-    def set_fitness(self, score):
-        self.fitness_score += score
 
-    def get_fitness(self):
-        return self.fitness_score
+    def calculate_fitness(self, func=None):
+        #TODO find a way to return a specific fitness value from different
+
+        if func == None:
+            func = time_to_ground
+
+        #this should calculate a force to apply
+        self.NN.set_weights(self.alleles)
+        output = self.NN.get_outputs(self.inputs)[0] * 1000
+
+        #Now we apply the force and see how it pefrorms to give a fitness
+        self.fitness_score = func(self.pendulum, self.state, output)
+
+
+
+
+
+
 
 
 class Population (object):
 
-    def __init__(self, NN, size=50):
+
+    def __init__(self, pendulum, NN, state=None, fitness_func=None, size=100):
         if NN is None: raise Exception('NN not initialized')
+        if pendulum is None: raise Exception('Pendulum not initialized')
         self.size = size
         self.genome = len(NN.get_weights())
         self.crossover_rate = 0.4
         self.mutation_rate = 0.3
         self.weightmax = 1
+        self.pendulum = pendulum
+        self.state = state
         self.NN = NN
         self.individuals = []
+        self.fitness_function = fitness_func
+        if state is not None: self.create(state, size, fitness_func)
 
 
-    def create(self,  size=50):
+    def create(self, state, size=30, fitness_func=None):
+        self.fitness_function = fitness_func
         self.size = size
 
         induhviduals = []
         for n in range(self.size):
             alleles = [uniform(-self.weightmax, self.weightmax) for n in range(self.genome)]
             shuffle(alleles)
-            induhvidual = Individual(alleles)
+            induhvidual = Individual(alleles, self.pendulum, state, self.NN)
+            induhvidual.calculate_fitness(fitness_func)
             induhviduals.append(induhvidual)
 
         self.individuals = induhviduals
@@ -77,15 +130,16 @@ class Population (object):
                     mutant1 = self.mutate(parent1)
                     mutant2 = self.mutate(parent2)
 
-                    #self.isDifferent(mutant1, parent1)
-                    #self.isDifferent(mutant2, parent2)
+                    #ta = time.time()
+                    mutant1.calculate_fitness(self.fitness_function)
+                    mutant2.calculate_fitness(self.fitness_function)
+                    #tb  = time.time()
+                    #print('time to fit children = {0}'.format(tb-ta))
 
                     induhviduals.append(mutant1)
                     induhviduals.append(mutant2)
 
                 population = individuals + induhviduals
-
-                self.reset_fitness(population)
 
             self.individuals = population
             return population
@@ -100,15 +154,15 @@ class Population (object):
                 localcopy.remove(excluded)
 
             sum_fitness = sum([chromosome.fitness_score for chromosome in localcopy])
-            fitchoice = uniform(0, sum_fitness)
+            choice = uniform(0, sum_fitness)
             current_score = 0
             for chromosome in localcopy:
                 current_score += chromosome.fitness_score
-                if current_score > fitchoice:
+                if current_score > choice:
                     return chromosome
 
             #in case can't decide
-            return choice(localcopy)
+            return localcopy[randint(0, len(localcopy)-1)]
 
         except Exception as ex:
             print('Select', ex)
@@ -135,28 +189,18 @@ class Population (object):
         except Exception as ex:
             print('Crossover -', ex)
 
-
     def mutate(self, chromosome):
         try:
-            retval = []
-            for n in range(len(chromosome.alleles)):
+            retval = copy.copy(chromosome)
+            for n in retval.alleles: #range(len(chromosome.alleles)):
                 if uniform(0, 1) < self.mutation_rate:
-                    retval.append(uniform(-self.weightmax, self.weightmax))
-                else:
-                    retval.append(chromosome.alleles[n])
+                    #retval.alleles[n] = uniform(-self.weightmax, self.weightmax)
+                    n = uniform(-self.weightmax, self.weightmax)
 
-            return Individual(alleles=retval)
-
+            return retval
         except Exception as ex:
             print('Mutate -', ex)
 
-    def reset_fitness(self, population):
-        if population is None:
-            population = self.individuals
-        for induhvidual in population:
-            induhvidual.fitness_score = 0
-
-        return population
 
 
     def __getFittest(self, population, n=0.2):
