@@ -176,6 +176,7 @@ def nnmain2(timeslice=0.002, tmax=0.2):
                     airborne = False
                 else:
                     induhvidual.set_fitness(1)
+                if induhvidual.get_fitness() >= 10000: break
 
             #master_array.append(state)
 
