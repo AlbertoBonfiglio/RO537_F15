@@ -1,3 +1,32 @@
+
+def NNTest():
+    try:
+        x = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=2,  hiddenneurons=15, inputweights=6)
+        w = x.get_weights()
+        w[1] = 666
+        x.set_weights2(w)
+        w1= x.get_weights()
+        print(w)
+        y = x.get_outputs([2, 4, 2, 8, 2.56, 3])
+        print(y)
+    except Exception as ex:
+        print(ex)
+
+
+def gaTest():
+    genome = np.zeros(6)
+
+    ga = Population(genome, size=100)
+
+    parents = [ga.individuals[4], ga.individuals[45]]
+
+    x1, x2 = ga.crossover(parents)
+
+    induhviduals = ga.evolve(125)
+    print('done')
+
+
+
 def applyforce(self, u=1, tmax=10, timeslice=0.01):
         try:
             xArray = []

@@ -2,10 +2,11 @@
 
 
 import time as tm
-from math import sin, cos, pi
+from math import sin, cos, pi, degrees
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import stats
 
 from HW5.classes.NeuralNetwork import NEvoNetwork, TanhActivation
 from HW5.classes.invertedpendulum import InvertedPendulum, State
@@ -92,48 +93,10 @@ def showGraph(x, y, cart, timeslice=0.01, caption=""):
     plt.show()
 
 
-def nnmain(timeslice=0.001, tmax=0.2):
-    #step 0: set up Neural network
-    #step 1: Start pendulum with random force
-    #step 2: at n milliseconds take state
-    #step 3: pass state to genetic algorithm
-    #step 4: GA runs n epochs and evaluates what gives the best output
-    #step 5: GA passes weights to NN to evaluate a force to apply to pendulum
-    #Step 6: NN applies force to pendulum
-    #Step 7: Goto step 2
-
-    pendulum = InvertedPendulum()
-    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=8, inputweights=6, activation=TanhActivation)
-    ga = Population(pendulum, NN)
-
-    force = -50 # np.random.randint(-100, -10)
-    states, time = pendulum.time_to_ground(u=force, tmax=tmax, timeslice=timeslice)
-    end_state = states[-1]
-    print('Force={1:3f} -Theta={0:4f}'.format(end_state.theta, force))
-
-    theta_array = []
-    for n in range(0, 100):
-        ga.create(end_state, size=100, fitness_func=time_in_threshold)
-        ga.create(end_state, size=100, fitness_func=angle_from_zero)
-
-        t0 = tm.time()
-        ga.evolve(epochs=75)
-        t1 = tm.time()
-        print('Evolutionj in {0}'.format(t0-t1))
-
-        t0 = tm.time()
-        induhvidual = ga.getFittestIndividual()
-        NN.set_weights(induhvidual.alleles)
-        force = NN.get_outputs([end_state.x, end_state.xdot, end_state.x2dot, end_state.theta, end_state.thetadot, end_state.theta2dot])[0] * 1000
-        states, time = pendulum.time_to_ground(u=force, initialstate=end_state, tmax=0.2, timeslice=timeslice)
-        t1 = tm.time()
-        print('state in {0}'.format(t0-t1))
-        end_state = states[-1]
-        theta_array.append(end_state.theta)
-        print('Force={1:3f} -Theta={0:4f} -Fitness={2:3f}'.format(end_state.theta, force, induhvidual.fitness_score))
 
 
-def nnmain2(timeslice=0.002, tmax=0.2):
+
+def run_controller(trials=10, epochs =250, timeslice=0.002, tmax=0.2, threshold =((-pi/2), (pi/2))):
     #step 0: set up Neural network
     #step 1: Start pendulum with random force
     #step 2: at n milliseconds take state
@@ -144,87 +107,95 @@ def nnmain2(timeslice=0.002, tmax=0.2):
     #Step 7: Goto step 2
 
     #TODO run multiple simulations, collect avg data and error and produce graphs
-    MAX_REWARD = 500
+    MAX_REWARD = 750
     pendulum = InvertedPendulum()
     NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=12, inputweights=6, activation=TanhActivation)
     ga = Population(NN=NN, size=30)
 
-    force = np.random.randint(-5, 5)
-    initial_state, time = pendulum.get_State(u=force, tmax=tmax, timeslice=timeslice)
-    print('Force={1:3f} -Theta={0:4f}'.format(initial_state[-1].theta, force))
+    main_array = []
+    reward_array =[]
+
+    threshold =((-pi/6), (pi/6))
+    for trial in range(0, trials):
+        ga.create(size=30)
+        force = np.random.randint(-5, 5)
+        while force == 0:
+            force = np.random.randint(-5, 5)
+
+        initial_state, time = pendulum.get_State(u=force, tmax=tmax, timeslice=timeslice)
+        print('Force={1:3f} -Theta={0:4f}'.format(initial_state[-1].theta, force))
+
+        reward_array = []
+        population_array = []
+        for epoch in range(0, epochs):
+            for induhvidual in ga.individuals:
+                NN.set_weights(induhvidual.alleles)
+                state = []
+                state.append(initial_state[-1])
+
+                airborne = True
+                while airborne:
+                    force = NN.get_outputs([state[-1].x, state[-1].xdot, state[-1].x2dot, state[-1].theta, state[-1].thetadot, state[-1].theta2dot])[0] * 5
+                    state, time = pendulum.get_State(u=force, initialstate=state[-1], tmax=tmax, timeslice=timeslice)
+
+                    if state[-1].theta < threshold[0] or state[-1].theta > threshold[1]:
+                        airborne = False
+                    else:
+                        induhvidual.set_fitness(1)
+
+                    if induhvidual.get_fitness() >= MAX_REWARD: break
+
+            reward_array.append(ga.getFittestIndividual().get_fitness())
+            population_array.append(ga.getPopulationFitness())
+            print('Trial: {0} - Epoch {1} --> Best fitness score = {2}, - Pop Fitness = {3}'
+                  .format(trial, epoch, ga.getFittestIndividual().get_fitness(), ga.getPopulationFitness()))
+            ga.evolve(epochs=1)
+
+        main_array.append((reward_array, population_array))
+
+    return main_array
 
 
-    master_array =[]
+def plot_controller_run(data, trials, epochs, threshold):
+    performace_array = []
+    for n in range(len(data[0][0])):
+        fitness_list = [item[0][n] for item in data]
+        pop_list = [item[1][n] for item in data]
 
-    ga.create(size=30)
+        performance = (fitness_list, np.mean(fitness_list), stats.sem(fitness_list)/2, np.std(fitness_list)/2,
+                       pop_list, np.mean(pop_list), stats.sem(pop_list)/2, np.std(pop_list)/2)
 
-    threshold =((-pi), (pi))
-    for epoch in range(0, 500):
-        for induhvidual in ga.individuals:
-            NN.set_weights(induhvidual.alleles)
-            #theta_array =[]
-            #theta_array += initial_state
-            state = []
-            state.append(initial_state[-1])
+        performace_array.append(performance)
 
-            airborne = True
-            while airborne:
-                force = NN.get_outputs([state[-1].x, state[-1].xdot, state[-1].x2dot, state[-1].theta, state[-1].thetadot, state[-1].theta2dot])[0] * 5
-                state, time = pendulum.get_State(u=force, initialstate=state[-1], tmax=tmax, timeslice=timeslice)
+    y = [item[1] for item in performace_array]
+    yerr = [item[2] for item in performace_array]
+    x = np.arange(len(y))
 
-                #theta_array += state
-                #print('Force = {0}, Theta = {1}'.format(force, state.theta))
-                if state[-1].theta < threshold[0] or state[-1].theta > threshold[1]:
-                    airborne = False
-                else:
-                    induhvidual.set_fitness(1)
-                if induhvidual.get_fitness() >= MAX_REWARD: break
+    y1 = [item[5] for item in performace_array]
+    y1err = [item[6] for item in performace_array]
 
-            #master_array.append(state)
+    f, axarr = plt.subplots(2, sharex=True)
 
-        print('Epoch {1} --> Best fitness score = {0}'.format(ga.getFittestIndividual().get_fitness(), epoch))
-        ga.evolve(epochs=1)
+    axarr[0].set_title("Average Performance of Neuro-Evolutionary controller \n "
+                       "over n={0} trials, {1:.2f}>theta<{2:.2f} "
+                       .format(trials, degrees(threshold[0]), degrees(threshold[1])))
+    axarr[0].errorbar(x, y, yerr=yerr, label='Best Fitness')
+    axarr[0].legend(loc="upper left", shadow=True, fancybox=True)
+    axarr[0].set_ylabel('Fitness')
 
+    axarr[1].errorbar(x, y1, yerr=y1err, label='Avg Pop. Fitness')
+    axarr[1].legend(loc="upper left", shadow=True, fancybox=True)
+    axarr[1].set_ylabel('Fitness')
 
+    plt.xlabel('Epochs (e={0})'.format(epochs))
 
-
-def NNTest():
-    try:
-        x = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=2,  hiddenneurons=15, inputweights=6)
-        w = x.get_weights()
-        w[1] = 666
-        x.set_weights2(w)
-        w1= x.get_weights()
-        print(w)
-        y = x.get_outputs([2, 4, 2, 8, 2.56, 3])
-        print(y)
-    except Exception as ex:
-        print(ex)
+    plt.show()
 
 
-def gaTest():
-    genome = np.zeros(6)
 
-    ga = Population(genome, size=100)
-
-    parents = [ga.individuals[4], ga.individuals[45]]
-
-    x1, x2 = ga.crossover(parents)
-
-    induhviduals = ga.evolve(125)
-    print('done')
 
 
 if __name__ == '__main__':
-    # in the simulation world it should not fall because the simulation is multi threaded
-
-    #start with the 0 values then pass the alues every 100ms to the NN
-    # the number of weights should be the same as the inputs in the network for all layers
-
-    #NNTest()
-
-    #gaTest()
-
 
     #pendulumTest(0.01)
     #pendulumTest(0.001)
@@ -233,7 +204,10 @@ if __name__ == '__main__':
     #pendulumTest(0.001, 0.001*200)
 
     #nnmain()
-    nnmain2()
-
+    trials= 15
+    epochs= 50
+    threshold =((-pi/8), (pi/8))
+    data = run_controller(trials, epochs, threshold=threshold)
+    plot_controller_run(data, trials, epochs, threshold)
 
 

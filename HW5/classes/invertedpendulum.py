@@ -16,8 +16,6 @@ class State(object):
         self.theta2dot = theta2dot
 
 
-
-
 # eq1 --> (M+m)x2dot - ml sinΘ Θdot^2 + ml cosΘ Θ2dot = u
 #         (M+m)x2dot = u +  (ml sinΘ Θdot^2) - (ml cosΘ Θ2dot)
 #         x2dot = (u +  (ml sinΘ Θdot^2) - (ml cosΘ Θ2dot)) / (M+m)
@@ -219,9 +217,6 @@ class InvertedPendulum (object):
     def smallest_angle(self, u=1, initialstate=None,  tmax=0.2, timeslice=0.001):
         theta = self.apply_force(u, initialstate, tmax, timeslice)
         return theta
-
-
-
 
     def get_State(self, u=1, initialstate=None, threshold=(-(pi/2), (pi/2)), tmax=10, timeslice=0.001):
         try:
