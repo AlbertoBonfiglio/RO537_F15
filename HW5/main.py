@@ -143,12 +143,13 @@ def nnmain2(timeslice=0.002, tmax=0.2):
     #Step 6: NN applies force to pendulum
     #Step 7: Goto step 2
 
-    MAX_REWARD = 2500
+    #TODO run multiple simulations, collect avg data and error and produce graphs
+    MAX_REWARD = 500
     pendulum = InvertedPendulum()
-    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=16, inputweights=6, activation=TanhActivation)
+    NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=12, inputweights=6, activation=TanhActivation)
     ga = Population(NN=NN, size=30)
 
-    force = np.random.randint(-1, 1)
+    force = np.random.randint(-5, 5)
     initial_state, time = pendulum.get_State(u=force, tmax=tmax, timeslice=timeslice)
     print('Force={1:3f} -Theta={0:4f}'.format(initial_state[-1].theta, force))
 
@@ -157,8 +158,8 @@ def nnmain2(timeslice=0.002, tmax=0.2):
 
     ga.create(size=30)
 
-    threshold =((-pi/2), (pi/2))
-    for epoch in range(0, 1000):
+    threshold =((-pi), (pi))
+    for epoch in range(0, 500):
         for induhvidual in ga.individuals:
             NN.set_weights(induhvidual.alleles)
             #theta_array =[]
@@ -168,7 +169,7 @@ def nnmain2(timeslice=0.002, tmax=0.2):
 
             airborne = True
             while airborne:
-                force = NN.get_outputs([state[-1].x, state[-1].xdot, state[-1].x2dot, state[-1].theta, state[-1].thetadot, state[-1].theta2dot])[0] #* 5
+                force = NN.get_outputs([state[-1].x, state[-1].xdot, state[-1].x2dot, state[-1].theta, state[-1].thetadot, state[-1].theta2dot])[0] * 5
                 state, time = pendulum.get_State(u=force, initialstate=state[-1], tmax=tmax, timeslice=timeslice)
 
                 #theta_array += state
