@@ -31,7 +31,7 @@ class Population (object):
         self.size = size
         self.genome = len(NN.get_weights())
         self.crossover_rate = 0.7
-        self.mutation_rate = 0.1
+        self.mutation_rate = 0.15
         self.weightmax = 1
         self.NN = NN
         self.individuals = []

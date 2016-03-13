@@ -143,6 +143,7 @@ def nnmain2(timeslice=0.002, tmax=0.2):
     #Step 6: NN applies force to pendulum
     #Step 7: Goto step 2
 
+    MAX_REWARD = 2500
     pendulum = InvertedPendulum()
     NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=16, inputweights=6, activation=TanhActivation)
     ga = Population(NN=NN, size=30)
@@ -176,7 +177,7 @@ def nnmain2(timeslice=0.002, tmax=0.2):
                     airborne = False
                 else:
                     induhvidual.set_fitness(1)
-                if induhvidual.get_fitness() >= 10000: break
+                if induhvidual.get_fitness() >= MAX_REWARD: break
 
             #master_array.append(state)
 
