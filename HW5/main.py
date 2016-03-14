@@ -107,7 +107,7 @@ def run_controller(trials=10, epochs =250, timeslice=0.002, tmax=0.2, threshold 
     #Step 7: Goto step 2
 
     #TODO run multiple simulations, collect avg data and error and produce graphs
-    MAX_REWARD = 750
+    MAX_REWARD = 1000
     pendulum = InvertedPendulum()
     NN = NEvoNetwork(inputs=6, outputs=1, hiddenlayers=1,  hiddenneurons=12, inputweights=6, activation=TanhActivation)
     ga = Population(NN=NN, size=30)
@@ -115,7 +115,7 @@ def run_controller(trials=10, epochs =250, timeslice=0.002, tmax=0.2, threshold 
     main_array = []
     reward_array =[]
 
-    threshold =((-pi/6), (pi/6))
+
     for trial in range(0, trials):
         ga.create(size=30)
         force = np.random.randint(-5, 5)
@@ -205,8 +205,8 @@ if __name__ == '__main__':
 
     #nnmain()
     trials= 15
-    epochs= 50
-    threshold =((-pi/8), (pi/8))
+    epochs= 150
+    threshold =((-pi/4), (pi/4))
     data = run_controller(trials, epochs, threshold=threshold)
     plot_controller_run(data, trials, epochs, threshold)
 
