@@ -282,7 +282,7 @@ if __name__ == '__main__':
 
     trials= 15
     epochs= 150
-    threshold =((-pi/4), (pi/4))
+    threshold =((-pi), (pi))
     data = run_controller(trials, epochs, threshold=threshold)
     plot_controller_run(data, trials, epochs, threshold)
 
